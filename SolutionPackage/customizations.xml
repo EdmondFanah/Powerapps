@@ -11,9 +11,9 @@
   <OrganizationSettings />
   <optionsets />
   <CustomControls>
-    <CustomControl Name="SampleNamespace.DataGridControl" Version="0.0.2">
+    <CustomControl Name="SampleNamespace.DataGridControl" Version="0.0.0.2">
       <ControlResources>
-        <Resource Path="Controls/SampleNamespace.DataGridControl/bundle.js" Order="1" Version="0.0.2" />
+        <Resource Path="Controls/SampleNamespace.DataGridControl/bundle.js" Order="1" Version="0.0.0.2" />
       </ControlResources>
     </CustomControl>
   </CustomControls>

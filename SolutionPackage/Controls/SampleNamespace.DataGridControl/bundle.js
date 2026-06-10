@@ -329,10 +329,3 @@ if (window.ComponentFramework && window.ComponentFramework.registerControl) {
 	SampleNamespace.DataGridControl = pcf_tools_652ac3f36e1e4bca82eb3c1dc44e6fad.DataGridControl;
 	pcf_tools_652ac3f36e1e4bca82eb3c1dc44e6fad = undefined;
 }
-if (window.ComponentFramework && window.ComponentFramework.registerControl) {
-	ComponentFramework.registerControl('SampleNamespace.DataGridControl', pcf_tools_652ac3f36e1e4bca82eb3c1dc44e6fad.DataGridControl);
-} else {
-	var SampleNamespace = SampleNamespace || {};
-	SampleNamespace.DataGridControl = pcf_tools_652ac3f36e1e4bca82eb3c1dc44e6fad.DataGridControl;
-	pcf_tools_652ac3f36e1e4bca82eb3c1dc44e6fad = undefined;
-}
