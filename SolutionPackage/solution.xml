@@ -12,15 +12,15 @@
     <Version>1.0.0.0</Version>
     <Managed>false</Managed>
     <Publisher>
-      <UniqueName>DefaultPublisher</UniqueName>
+      <UniqueName>DataGridPCFPub</UniqueName>
       <LocalizedNames>
-        <LocalizedName description="Default Publisher" languagecode="1033" />
+        <LocalizedName description="DataGrid PCF Publisher" languagecode="1033" />
       </LocalizedNames>
       <Descriptions />
       <EMailAddress />
       <SupportingWebsiteUrl />
-      <CustomizationPrefix>cr</CustomizationPrefix>
-      <CustomizationOptionValuePrefix>10000</CustomizationOptionValuePrefix>
+      <CustomizationPrefix>dgp</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>14725</CustomizationOptionValuePrefix>
       <Addresses>
         <Address>
           <AddressNumber>1</AddressNumber>

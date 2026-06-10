@@ -34,16 +34,32 @@ fs.mkdirSync(solutionControlDir, { recursive: true });
 
 // 2. Zip SolutionPackage using PowerShell
 console.log('Creating DataGridPCFSolution.zip...');
-if (fs.existsSync(zipFile)) fs.unlinkSync(zipFile);
 
 const solutionPackageDir = path.join(root, 'SolutionPackage');
 
-// Use .NET ZipFile directly (handles [Content_Types].xml bracket issue in PowerShell)
+// Write a temp PowerShell script to zip with forward-slash paths (required by Power Apps)
 if (process.platform === 'win32') {
-  execSync(
-    `powershell -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('${solutionPackageDir}', '${zipFile}')"`,
-    { stdio: 'inherit' }
-  );
+  // Delete old zip via PowerShell to avoid Windows lock issues
+  if (fs.existsSync(zipFile)) {
+    execSync(`powershell -Command "Remove-Item -Force '${zipFile}'"`, { stdio: 'inherit' });
+  }
+  const tmpScript = path.join(root, '_mkzip.ps1');
+  const ps = `
+Add-Type -Assembly 'System.IO.Compression'
+Add-Type -Assembly 'System.IO.Compression.FileSystem'
+$src = '${solutionPackageDir}'
+$dest = '${zipFile}'
+if (Test-Path $dest) { Remove-Item $dest }
+$zip = [System.IO.Compression.ZipFile]::Open($dest, [System.IO.Compression.ZipArchiveMode]::Create)
+Get-ChildItem $src -Recurse -File | ForEach-Object {
+    $rel = $_.FullName.Substring($src.Length + 1).Replace('\\', '/')
+    [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $_.FullName, $rel) | Out-Null
+}
+$zip.Dispose()
+`.trimStart();
+  fs.writeFileSync(tmpScript, ps, 'utf8');
+  execSync(`powershell -ExecutionPolicy Bypass -File "${tmpScript}"`, { stdio: 'inherit' });
+  fs.unlinkSync(tmpScript);
 } else {
   execSync(`cd "${solutionPackageDir}" && zip -r "${zipFile}" .`, { stdio: 'inherit' });
 }
