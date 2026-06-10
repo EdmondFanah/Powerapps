@@ -17,3 +17,9 @@ Thumbs.db
 *.user
 
 SolutionUnpacked/
+
+ReferenceUnpacked/
+ReferenceExport.zip
+TestPac.zip
+
+obj/
