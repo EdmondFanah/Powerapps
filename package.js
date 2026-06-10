@@ -38,10 +38,10 @@ if (fs.existsSync(zipFile)) fs.unlinkSync(zipFile);
 
 const solutionPackageDir = path.join(root, 'SolutionPackage');
 
-// Use PowerShell Compress-Archive (Windows) or zip (Unix)
+// Use .NET ZipFile directly (handles [Content_Types].xml bracket issue in PowerShell)
 if (process.platform === 'win32') {
   execSync(
-    `powershell -Command "Compress-Archive -Path '${solutionPackageDir}\\*' -DestinationPath '${zipFile}' -Force"`,
+    `powershell -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; [System.IO.Compression.ZipFile]::CreateFromDirectory('${solutionPackageDir}', '${zipFile}')"`,
     { stdio: 'inherit' }
   );
 } else {
