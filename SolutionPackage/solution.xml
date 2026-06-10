@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImportExportXml version="9.0.0.0059" SolutionPackageVersion="9.1" languagecode="1033"
+  generatedBy="CrmExport" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SolutionManifest>
+    <UniqueName>DataGridPCFSolution</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="DataGrid PCF Solution" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="DataGrid PCF Control for PowerApps Canvas" languagecode="1033" />
+    </Descriptions>
+    <Version>1.0.0.0</Version>
+    <Managed>false</Managed>
+    <Publisher>
+      <UniqueName>DefaultPublisher</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="Default Publisher" languagecode="1033" />
+      </LocalizedNames>
+      <Descriptions />
+      <EMailAddress />
+      <SupportingWebsiteUrl />
+      <CustomizationPrefix>cr</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>10000</CustomizationOptionValuePrefix>
+      <Addresses>
+        <Address>
+          <AddressNumber>1</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City />
+          <County />
+          <Country />
+          <Fax />
+          <FreightTermsCode xsi:nil="true" />
+          <ImportSequenceNumber xsi:nil="true" />
+          <Latitude xsi:nil="true" />
+          <Line1 />
+          <Line2 />
+          <Line3 />
+          <Longitude xsi:nil="true" />
+          <Name />
+          <PostalCode />
+          <PostOfficeBox />
+          <PrimaryContactName />
+          <ShippingMethodCode xsi:nil="true" />
+          <StateOrProvince />
+          <Telephone1 />
+          <Telephone2 />
+          <Telephone3 />
+          <TimeZoneRuleVersionNumber xsi:nil="true" />
+          <UPSZone />
+          <UTCOffset xsi:nil="true" />
+          <WebSiteUrl />
+        </Address>
+      </Addresses>
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="66" schemaName="SampleNamespace.DataGridControl" behavior="0" />
+    </RootComponents>
+    <MissingDependencies />
+  </SolutionManifest>
+</ImportExportXml>

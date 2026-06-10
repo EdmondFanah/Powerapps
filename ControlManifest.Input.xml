@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <control namespace="SampleNamespace" constructor="DataGridControl" version="0.0.2"
+    display-name-key="DataGridControl" description-key="DataGridControl_Desc"
+    control-type="standard">
+    <external-service-usage enabled="false"></external-service-usage>
+
+    <!-- Header -->
+    <property name="HeaderHeight" display-name-key="HeaderHeight"
+      description-key="HeaderHeight_Desc" of-type="Whole.None" usage="input" required="false" />
+    <property name="WrapHeaderText" display-name-key="WrapHeaderText"
+      description-key="WrapHeaderText_Desc" of-type="TwoOptions" usage="input" required="false" />
+    <property name="HeaderHorizontalAlign" display-name-key="HeaderHorizontalAlign"
+      description-key="HeaderHorizontalAlign_Desc" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="HeaderVerticalAlign" display-name-key="HeaderVerticalAlign"
+      description-key="HeaderVerticalAlign_Desc" of-type="SingleLine.Text" usage="input" required="false" />
+
+    <!-- Editing -->
+    <property name="EnableRowSelection" display-name-key="EnableRowSelection"
+      description-key="EnableRowSelection_Desc" of-type="TwoOptions" usage="input" required="false" />
+    <property name="EnableInlineEdit" display-name-key="EnableInlineEdit"
+      description-key="EnableInlineEdit_Desc" of-type="TwoOptions" usage="input" required="false" />
+    <property name="ShowLocalSaveIndicator" display-name-key="ShowLocalSaveIndicator"
+      description-key="ShowLocalSaveIndicator_Desc" of-type="TwoOptions" usage="input" required="false" />
+
+    <!-- Column Configuration (JSON): [{"name":"fieldName","label":"Label","width":150,"align":"left","visible":true}] -->
+    <property name="ColumnConfig" display-name-key="ColumnConfig"
+      description-key="ColumnConfig_Desc" of-type="SingleLine.Text" usage="input" required="false" />
+
+    <!-- Pagination -->
+    <property name="PageSize" display-name-key="PageSize"
+      description-key="PageSize_Desc" of-type="Whole.None" usage="input" required="false" />
+    <property name="ShowPagination" display-name-key="ShowPagination"
+      description-key="ShowPagination_Desc" of-type="TwoOptions" usage="input" required="false" />
+
+    <!-- Search -->
+    <property name="ShowSearch" display-name-key="ShowSearch"
+      description-key="ShowSearch_Desc" of-type="TwoOptions" usage="input" required="false" />
+
+    <!-- Appearance -->
+    <property name="AlternateRowColor" display-name-key="AlternateRowColor"
+      description-key="AlternateRowColor_Desc" of-type="TwoOptions" usage="input" required="false" />
+    <property name="PrimaryColor" display-name-key="PrimaryColor"
+      description-key="PrimaryColor_Desc" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="FontSize" display-name-key="FontSize"
+      description-key="FontSize_Desc" of-type="Whole.None" usage="input" required="false" />
+    <property name="RowHeight" display-name-key="RowHeight"
+      description-key="RowHeight_Desc" of-type="Whole.None" usage="input" required="false" />
+    <property name="ShowGridLines" display-name-key="ShowGridLines"
+      description-key="ShowGridLines_Desc" of-type="TwoOptions" usage="input" required="false" />
+    <property name="FrozenColumns" display-name-key="FrozenColumns"
+      description-key="FrozenColumns_Desc" of-type="Whole.None" usage="input" required="false" />
+
+    <data-set name="sampleDataSet" display-name-key="sampleDataSet">
+    </data-set>
+    <resources>
+      <code path="index.ts" order="1" />
+    </resources>
+  </control>
+</manifest>

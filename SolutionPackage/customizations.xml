@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImportExportXml version="9.0.0.0059" SolutionPackageVersion="9.1" languagecode="1033"
+  generatedBy="CrmExport" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Entities />
+  <Roles />
+  <Workflows />
+  <FieldSecurityProfiles />
+  <Templates />
+  <EntityMaps />
+  <EntityRelationships />
+  <OrganizationSettings />
+  <optionsets />
+  <CustomControls>
+    <CustomControl Name="SampleNamespace.DataGridControl" Version="0.0.2">
+      <ControlResources>
+        <Resource Path="Controls/SampleNamespace.DataGridControl/bundle.js" Order="1" Version="0.0.2" />
+      </ControlResources>
+    </CustomControl>
+  </CustomControls>
+  <SolutionPluginAssemblies />
+  <Languages>
+    <Language>1033</Language>
+  </Languages>
+</ImportExportXml>
