@@ -1,13 +1,14 @@
 /**
- * package.js - Builds the deployable solution .zip for Power Apps canvas.
+ * package.js - Builds the deployable solution .zip for Power Apps import.
  *
  * Usage: node package.js  (or: npm run package)
  *
+ * Requires only Node.js + .NET (no pac CLI, no network auth).
+ *
  * Steps:
- *  1. Copies the latest bundle.js + ControlManifest.xml from out/controls/
- *     into SolutionUnpacked/Controls/SampleNamespace.DataGridControl/
- *  2. Copies solution.xml and customizations.xml into SolutionUnpacked/Other/
- *  3. Runs "pac solution pack" to produce a properly formatted DataGridPCFSolution.zip
+ *  1. Builds bundle.js via npm run build
+ *  2. Zips (bundle.js + ControlManifest.xml) into a control zip
+ *  3. Packages control zip + solution.xml + customizations.xml into DataGridPCFSolution.zip
  */
 const fs = require('fs');
 const path = require('path');
@@ -15,38 +16,77 @@ const { execSync } = require('child_process');
 
 const root = __dirname;
 const outDir = path.join(root, 'out', 'controls');
-const unpackedDir = path.join(root, 'SolutionUnpacked');
-const unpackedOther = path.join(unpackedDir, 'Other');
-const unpackedControls = path.join(unpackedDir, 'Controls', 'SampleNamespace.DataGridControl');
+const solutionPackageDir = path.join(root, 'SolutionPackage');
 const zipFile = path.join(root, 'DataGridPCFSolution.zip');
 
-// 1. Ensure SolutionUnpacked folder structure exists
-fs.mkdirSync(unpackedOther, { recursive: true });
-fs.mkdirSync(unpackedControls, { recursive: true });
+const NAMESPACE = 'SampleNamespace';
+const CONSTRUCTOR = 'DataGridControl';
+const VERSION = '0.0.0.2';
 
-// 2. Copy build outputs
-console.log('Copying build outputs...');
+// Derive control zip name from namespace.constructor_version
+const controlZipName = `${NAMESPACE}.${CONSTRUCTOR}_${VERSION.replace(/\./g, '_')}.zip`;
+const controlFolder = `Controls/${NAMESPACE}.${CONSTRUCTOR}`;
+
+// 1. Check build outputs exist
 ['bundle.js', 'ControlManifest.xml'].forEach(file => {
-  const src = path.join(outDir, file);
-  if (!fs.existsSync(src)) {
-    console.error(`ERROR: ${src} not found. Run "npm run build" first.`);
+  if (!fs.existsSync(path.join(outDir, file))) {
+    console.error(`ERROR: out/controls/${file} not found. Run "npm run build" first.`);
     process.exit(1);
   }
-  fs.copyFileSync(src, path.join(unpackedControls, file));
-  console.log(`  Copied ${file}`);
 });
 
-// 3. Copy solution XML files into Other/
-fs.copyFileSync(path.join(root, 'SolutionPackage', 'solution.xml'), path.join(unpackedOther, 'Solution.xml'));
-fs.copyFileSync(path.join(root, 'SolutionPackage', 'customizations.xml'), path.join(unpackedOther, 'Customizations.xml'));
-console.log('  Copied Solution.xml and Customizations.xml');
+console.log('Creating DataGridPCFSolution.zip...');
 
-// 4. Delete old zip if it exists
-if (fs.existsSync(zipFile)) fs.unlinkSync(zipFile);
+// 2. Use PowerShell + .NET ZipArchive to build the zip (no pac needed)
+const bundleJs = path.join(outDir, 'bundle.js').replace(/\\/g, '\\\\');
+const controlManifest = path.join(outDir, 'ControlManifest.xml').replace(/\\/g, '\\\\');
+const solutionXml = path.join(solutionPackageDir, 'solution.xml').replace(/\\/g, '\\\\');
+const customizationsXml = path.join(solutionPackageDir, 'customizations.xml').replace(/\\/g, '\\\\');
+const zipOut = zipFile.replace(/\\/g, '\\\\');
 
-// 5. Use pac solution pack to create the zip
-console.log('Running pac solution pack...');
-const pacCmd = `pac solution pack --folder "${unpackedDir}" --zipfile "${zipFile}" --packagetype Unmanaged`;
-execSync(pacCmd, { stdio: 'inherit' });
+const contentTypes = `<?xml version="1.0" encoding="utf-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="xml" ContentType="application/octet-stream" /><Default Extension="js" ContentType="application/octet-stream" /><Default Extension="zip" ContentType="application/octet-stream" /></Types>`;
 
-console.log(`\nDone! Import ${path.basename(zipFile)} into Power Apps at https://make.powerapps.com`);
+const ps = `
+Add-Type -Assembly 'System.IO.Compression'
+Add-Type -Assembly 'System.IO.Compression.FileSystem'
+
+$zipOut = '${zipOut}'
+if (Test-Path $zipOut) { Remove-Item $zipOut }
+
+# Build inner control zip in memory
+$ctrlStream = New-Object System.IO.MemoryStream
+$ctrlZip = [System.IO.Compression.ZipArchive]::new($ctrlStream, [System.IO.Compression.ZipArchiveMode]::Create, $true)
+[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($ctrlZip, '${bundleJs}', 'bundle.js') | Out-Null
+[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($ctrlZip, '${controlManifest}', 'ControlManifest.xml') | Out-Null
+$ctrlZip.Dispose()
+
+# Build outer solution zip
+$outerZip = [System.IO.Compression.ZipFile]::Open($zipOut, [System.IO.Compression.ZipArchiveMode]::Create)
+
+# Add control zip as Controls/{ns}.{ctor}/bundle entry (flat in Controls/ folder)
+[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($outerZip, '${bundleJs}', '${controlFolder}/bundle.js') | Out-Null
+[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($outerZip, '${controlManifest}', '${controlFolder}/ControlManifest.xml') | Out-Null
+
+# Add solution XMLs
+[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($outerZip, '${solutionXml}', 'solution.xml') | Out-Null
+[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($outerZip, '${customizationsXml}', 'customizations.xml') | Out-Null
+
+# Add [Content_Types].xml
+$ctEntry = $outerZip.CreateEntry('[Content_Types].xml')
+$ctWriter = New-Object System.IO.StreamWriter($ctEntry.Open())
+$ctWriter.Write('${contentTypes}')
+$ctWriter.Dispose()
+
+$outerZip.Dispose()
+Write-Host "Done: $zipOut"
+`.trimStart();
+
+const tmpScript = path.join(root, '_mkzip.ps1');
+fs.writeFileSync(tmpScript, ps, 'utf8');
+try {
+  execSync(`powershell -ExecutionPolicy Bypass -File "${tmpScript}"`, { stdio: 'inherit' });
+} finally {
+  fs.unlinkSync(tmpScript);
+}
+
+console.log(`\nImport DataGridPCFSolution.zip at https://make.powerapps.com → Solutions → Import solution`);
