@@ -81,9 +81,7 @@
         </Address>
       </Addresses>
     </Publisher>
-    <RootComponents>
-      <RootComponent type="66" schemaName="SampleNamespace.DataGridControl" behavior="0" />
-    </RootComponents>
+    <RootComponents />
     <MissingDependencies />
   </SolutionManifest>
 </ImportExportXml>
