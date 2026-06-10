@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.PowerApps.MSBuild.Pcf/1.0.0">
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PowerAppsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\PowerApps</PowerAppsTargetsPath>
   </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
+          Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <ProjectGuid>a3f2c1d4-b5e6-4789-abcd-ef0123456789</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{a3f2c1d4-b5e6-4789-abcd-ef0123456789}</ProjectGuid>
     <OutputPath>$(MSBuildThisFileDirectory)out\controls</OutputPath>
     <ProjectReferenceExists>true</ProjectReferenceExists>
-    <ControlLocation>index.ts</ControlLocation>
+    <ControlLocation>$(MSBuildThisFileDirectory)index.ts</ControlLocation>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.PowerApps.MSBuild.Pcf" Version="1.0.0" />
+    <PackageReference Include="Microsoft.PowerApps.MSBuild.Pcf" Version="1.0.6" />
   </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
