@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.PowerApps.MSBuild.Pcf/1.0.0">
+  <PropertyGroup>
+    <PowerAppsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\PowerApps</PowerAppsTargetsPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ProjectGuid>a3f2c1d4-b5e6-4789-abcd-ef0123456789</ProjectGuid>
+    <OutputPath>$(MSBuildThisFileDirectory)out\controls</OutputPath>
+    <ProjectReferenceExists>true</ProjectReferenceExists>
+    <ControlLocation>index.ts</ControlLocation>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.PowerApps.MSBuild.Pcf" Version="1.0.0" />
+  </ItemGroup>
+</Project>
