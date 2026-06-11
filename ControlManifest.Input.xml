@@ -2,7 +2,7 @@
 <manifest>
   <control namespace="SampleNamespace" constructor="DataGridControl" version="1.0.0"
     display-name-key="DataGridControl" description-key="DataGridControl_Desc"
-    control-type="standard">
+    control-type="virtual">
     <external-service-usage enabled="false"></external-service-usage>
 
     <!-- Header -->

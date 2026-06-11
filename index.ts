@@ -1,10 +1,8 @@
 import { IInputs, IOutputs } from './ManifestTypes';
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
 import { App } from './App';
 
-export class DataGridControl implements ComponentFramework.StandardControl<IInputs, IOutputs> {
-    private _container: HTMLDivElement;
+export class DataGridControl implements ComponentFramework.ReactControl<IInputs, IOutputs> {
     private _notifyOutputChanged: () => void;
     private _selectedRowId: string | null = null;
     private _dirtyEditCount: number = 0;
@@ -12,16 +10,14 @@ export class DataGridControl implements ComponentFramework.StandardControl<IInpu
     public init(
         context: ComponentFramework.Context<IInputs>,
         notifyOutputChanged: () => void,
-        state: ComponentFramework.Dictionary,
-        container: HTMLDivElement
+        state: ComponentFramework.Dictionary
     ): void {
-        this._container = container;
         this._notifyOutputChanged = notifyOutputChanged;
         context.parameters.sampleDataSet.paging.setPageSize(500);
     }
 
-    public updateView(context: ComponentFramework.Context<IInputs>): void {
-        const props = {
+    public updateView(context: ComponentFramework.Context<IInputs>): React.ReactElement {
+        return React.createElement(App, {
             inputs: context.parameters,
             onSelectionChange: (id: string | null) => {
                 this._selectedRowId = id;
@@ -31,8 +27,7 @@ export class DataGridControl implements ComponentFramework.StandardControl<IInpu
                 this._dirtyEditCount = count;
                 this._notifyOutputChanged();
             },
-        };
-        ReactDOM.render(React.createElement(App, props), this._container);
+        });
     }
 
     public getOutputs(): IOutputs {
@@ -43,6 +38,6 @@ export class DataGridControl implements ComponentFramework.StandardControl<IInpu
     }
 
     public destroy(): void {
-        ReactDOM.unmountComponentAtNode(this._container);
+        // no-op: platform manages React lifecycle for virtual controls
     }
 }
