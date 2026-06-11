@@ -44,17 +44,96 @@ This will:
 2. Pack a Dataverse solution zip via `pac solution pack`
 3. Output `DataGridPCFSolution.zip` in the project root
 
-## Deploy to Power Apps
+## Deploy to a New Environment
 
+Follow these steps to deploy to any Power Apps environment from scratch.
+
+### Step 1 — Set up the machine (first time only)
+
+Install the required tools if not already present:
+
+```powershell
+# Node.js (v18+) — https://nodejs.org
+# .NET 8 SDK — https://dotnet.microsoft.com/download
+
+# Power Platform CLI
+winget install Microsoft.PowerPlatformCLI
+```
+
+After installing, refresh your PATH:
+```powershell
+$env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH","User")
+```
+
+Verify:
+```powershell
+pac --version   # should show 2.8+
+node --version  # should show v18+
+dotnet --version # should show 8.x
+```
+
+### Step 2 — Clone and install
+
+```bash
+git clone https://github.com/EdmondFanah/Powerapps.git
+cd Powerapps
+npm install
+```
+
+> `postinstall.js` runs automatically and patches a known `pcf-scripts` bug. No extra steps needed.
+
+### Step 3 — Build and package the solution
+
+```bash
+npm run package
+```
+
+This produces `DataGridPCFSolution.zip` in the project root — a ready-to-import Dataverse unmanaged solution.
+
+### Step 4 — Authenticate with Power Platform CLI
+
+```powershell
+pac auth create --environment https://<your-org>.crm.dynamics.com
+```
+
+Sign in with your credentials when the browser opens. Replace `<your-org>` with your environment URL (found in [Power Platform Admin Center](https://admin.powerplatform.microsoft.com) → Environments → your env → Settings → Environment URL).
+
+### Step 5 — Import the solution
+
+**Option A — via browser (recommended):**
 1. Go to [make.powerapps.com](https://make.powerapps.com)
-2. Select your environment
+2. Select your environment (top-right corner)
 3. **Solutions → Import solution**
 4. Upload `DataGridPCFSolution.zip`
-5. Follow the import wizard
+5. Click **Next → Import**
+
+**Option B — via CLI:**
+```powershell
+pac solution import --path DataGridPCFSolution.zip
+```
 
 After import, the control appears in Canvas apps under **Insert → Custom → DataGridControl**.
 
-> **Requires privilege:** The importing user must have the `prvCreateCustomControl` privilege. This is included in the **System Administrator** and **System Customizer** security roles. Ask your admin to grant one of these roles if the import fails with a privilege error.
+### Step 6 — Grant permissions (if import fails)
+
+If the import fails with `missing prvCreateCustomControl privilege`:
+
+1. Go to [Power Platform Admin Center](https://admin.powerplatform.microsoft.com)
+2. Select your environment → **Settings → Users + permissions → Security roles**
+3. Open the role assigned to your user
+4. Go to the **Customization** tab → find **Custom Control** → enable **Create**
+5. Save, then retry the import
+
+Alternatively, ask a System Administrator to either import the solution on your behalf or temporarily assign you the **System Customizer** role.
+
+### Step 7 — Add to a Canvas app
+
+1. Open or create a Canvas app at [make.powerapps.com](https://make.powerapps.com)
+2. **Insert → Get more components** (if the control is not yet listed)
+3. Search for `DataGridControl` → **Import**
+4. Insert it onto a screen: **Insert → Custom → DataGridControl**
+5. In the right panel, connect `sampleDataSet` to a data source (e.g. a Dataverse table)
+6. Configure properties as needed (see [Canvas App Configuration](#canvas-app-configuration) below)
 
 ## Canvas App Configuration
 
