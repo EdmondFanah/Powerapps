@@ -27,8 +27,8 @@ export interface IInputs {
     RowHeight: ComponentFramework.PropertyTypes.WholeNumberProperty;
     ShowGridLines: ComponentFramework.PropertyTypes.TwoOptionsProperty;
     FrozenColumns: ComponentFramework.PropertyTypes.WholeNumberProperty;
-    // Dataset
-    sampleDataSet: ComponentFramework.PropertyTypes.DataSet;
+    // Data as JSON string (pass JSON(yourCollection) from Canvas)
+    DataJson: ComponentFramework.PropertyTypes.StringProperty;
 }
 
 export interface IOutputs {

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { DataGrid } from './components/DataGrid';
 import { GridColumn } from './models/GridColumn';
-import { getDefaultAlign } from './models/GridTheme';
 import { IInputs } from './ManifestTypes';
 
 export interface AppProps {
@@ -30,58 +29,60 @@ function parseColumnConfig(json: string | null): Record<string, ColConfigEntry> 
     }
 }
 
-function buildColumns(
-    dataset: ComponentFramework.PropertyTypes.DataSet,
+function parseDataJson(json: string | null): Record<string, string>[] {
+    if (!json) return [];
+    try {
+        const parsed = JSON.parse(json);
+        if (Array.isArray(parsed)) return parsed as Record<string, string>[];
+        return [];
+    } catch {
+        return [];
+    }
+}
+
+function buildColumnsFromRecords(
+    records: Record<string, string>[],
     configJson: string | null
 ): GridColumn[] {
+    if (records.length === 0) return [];
     const configMap = parseColumnConfig(configJson);
-    return dataset.columns.map(col => {
-        const override = configMap[col.name] ?? {};
+    const keys = Object.keys(records[0]).filter(k => k !== '__id');
+    return keys.map(key => {
+        const override = configMap[key] ?? {};
         return {
-            key: col.name,
-            name: override.label ?? col.displayName,
-            fieldName: col.name,
-            width: override.width ?? (col.visualSizeFactor > 0 ? col.visualSizeFactor : 150),
-            align: override.align ?? getDefaultAlign(col.dataType),
+            key,
+            name: override.label ?? key,
+            fieldName: key,
+            width: override.width ?? 150,
+            align: override.align ?? 'left',
             visible: override.visible ?? true,
             isResizable: true,
             isSortable: true,
             isFilterable: true,
-            dataType: col.dataType,
+            dataType: 'SingleLine.Text',
         };
     });
 }
 
-function buildRecords(
-    dataset: ComponentFramework.PropertyTypes.DataSet
-): { records: Record<string, string>[]; ids: string[] } {
-    const ids = dataset.sortedRecordIds;
-    const records = ids.map(id => {
-        const record = dataset.records[id];
-        const row: Record<string, string> = {};
-        dataset.columns.forEach(col => {
-            row[col.name] = record.getFormattedValue(col.name) ?? '';
-        });
-        return row;
-    });
-    return { records, ids };
-}
-
 export const App: React.FC<AppProps> = ({ inputs, onSelectionChange, onDirtyCountChange }) => {
-    const dataset = inputs.sampleDataSet;
+    const dataJson = inputs.DataJson?.raw ?? null;
     const columnConfigJson = inputs.ColumnConfig?.raw ?? null;
 
-    const columns = React.useMemo(
-        () => buildColumns(dataset, columnConfigJson),
-        [dataset, columnConfigJson]
+    const records = React.useMemo(() => parseDataJson(dataJson), [dataJson]);
+    const recordIds = React.useMemo(
+        () => records.map((_, i) => String(i)),
+        [records]
     );
-    const { records, ids } = React.useMemo(() => buildRecords(dataset), [dataset]);
+    const columns = React.useMemo(
+        () => buildColumnsFromRecords(records, columnConfigJson),
+        [records, columnConfigJson]
+    );
 
     return (
         <DataGrid
             columns={columns}
             records={records}
-            recordIds={ids}
+            recordIds={recordIds}
             headerHeight={inputs.HeaderHeight?.raw ?? 42}
             wrapHeaderText={inputs.WrapHeaderText?.raw ?? false}
             headerHorizontalAlign={inputs.HeaderHorizontalAlign?.raw ?? 'left'}

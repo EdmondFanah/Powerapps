@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="SampleNamespace" constructor="DataGridControl" version="1.0.0"
+  <control namespace="SampleNamespace" constructor="DataGridControl" version="1.0.1"
     display-name-key="DataGridControl" description-key="DataGridControl_Desc"
     control-type="virtual">
     <external-service-usage enabled="false"></external-service-usage>
@@ -51,8 +51,10 @@
     <property name="FrozenColumns" display-name-key="FrozenColumns"
       description-key="FrozenColumns_Desc" of-type="Whole.None" usage="input" required="false" />
 
-    <data-set name="sampleDataSet" display-name-key="sampleDataSet">
-    </data-set>
+    <!-- Data (JSON string): pass JSON(yourCollection) from Canvas -->
+    <property name="DataJson" display-name-key="DataJson"
+      description-key="DataJson_Desc" of-type="Multiple" usage="input" required="false" />
+
     <resources>
       <code path="index.ts" order="1" />
     </resources>

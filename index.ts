@@ -13,7 +13,6 @@ export class DataGridControl implements ComponentFramework.ReactControl<IInputs,
         state: ComponentFramework.Dictionary
     ): void {
         this._notifyOutputChanged = notifyOutputChanged;
-        context.parameters.sampleDataSet.paging.setPageSize(500);
     }
 
     public updateView(context: ComponentFramework.Context<IInputs>): React.ReactElement {
