@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="DataGrid" constructor="DataGridControl" version="1.0.5"
+  <control namespace="DataGrid" constructor="DataGridControl" version="1.0.6"
     display-name-key="DataGridControl" description-key="DataGridControl_Desc"
     control-type="standard">
 

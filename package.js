@@ -20,8 +20,8 @@ const outDir       = path.join(root, 'out', 'controls');
 const zipFile      = path.join(root, 'DataGridPCFSolution.zip');
 const unpackedDir  = path.join(root, 'SolutionUnpacked');
 const otherDir     = path.join(unpackedDir, 'Other');
-const controlsDir  = path.join(unpackedDir, 'Controls', 'DataGrid.DataGridControl');
-const SOLUTION_VERSION = '1.0.5.0';
+const controlsDir  = path.join(unpackedDir, 'Controls', 'dgpc_DataGrid.DataGridControl');
+const SOLUTION_VERSION = '1.0.6.0';
 
 // 1. Check build outputs exist
 ['bundle.js', 'ControlManifest.xml'].forEach(file => {
@@ -31,13 +31,24 @@ const SOLUTION_VERSION = '1.0.5.0';
   }
 });
 
-// 2. Ensure folder structure
+// 2. Wipe old Controls folder to prevent stale namespace folders causing RootComponent errors
+const controlsRootDir = path.join(unpackedDir, 'Controls');
+if (fs.existsSync(controlsRootDir)) fs.rmSync(controlsRootDir, { recursive: true, force: true });
+
+// 3. Ensure folder structure
 fs.mkdirSync(otherDir,    { recursive: true });
 fs.mkdirSync(controlsDir, { recursive: true });
 
-// 3. Copy built files into SolutionUnpacked
+// 4. Copy built files into SolutionUnpacked
 fs.copyFileSync(path.join(outDir, 'bundle.js'),          path.join(controlsDir, 'bundle.js'));
 fs.copyFileSync(path.join(outDir, 'ControlManifest.xml'), path.join(controlsDir, 'ControlManifest.xml'));
+
+// 4a. Patch namespace to include publisher prefix (pcf-scripts rejects underscores so we post-process)
+//     EnhancedTable works because Dataverse stores controls as publisherprefix_namespace.constructor
+//     We replicate that by injecting dgpc_ into the namespace here.
+let manifestXml = fs.readFileSync(path.join(controlsDir, 'ControlManifest.xml'), 'utf8');
+manifestXml = manifestXml.replace(' namespace="DataGrid"', ' namespace="dgpc_DataGrid"');
+fs.writeFileSync(path.join(controlsDir, 'ControlManifest.xml'), manifestXml, 'utf8');
 
 // 4. Write solution.xml (bump version)
 const solutionXml = fs.readFileSync(path.join(root, 'SolutionPackage', 'solution.xml'), 'utf8')
