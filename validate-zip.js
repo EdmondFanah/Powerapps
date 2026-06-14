@@ -209,8 +209,9 @@ if (manifestKey && entries[manifestKey]) {
   if (xml) {
     pass('Valid XML structure');
     const ctrlType = attr(mf.match(/<control [^>]*/)?.[0] || '', 'control-type');
-    if (ctrlType === 'virtual') pass(`control-type: virtual (Canvas compatible)`);
-    else fail(`control-type: "${ctrlType}" — must be "virtual" for Canvas apps`);
+    if (ctrlType === 'standard') pass(`control-type: standard (Canvas compatible)`);
+    else if (ctrlType === 'virtual') pass(`control-type: virtual (Canvas compatible)`);
+    else fail(`control-type: "${ctrlType}" — must be "standard" or "virtual"`);
     const ctrlVer = attr(mf.match(/<control [^>]*/)?.[0] || '', 'version');
     if (ctrlVer) pass(`Control version: ${ctrlVer}`);
     if (mf.includes('data-set')) fail('data-set found in manifest — requires dataset PCF feature flag (often unavailable)');

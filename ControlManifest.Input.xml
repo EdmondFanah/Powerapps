@@ -2,8 +2,7 @@
 <manifest>
   <control namespace="SampleNamespace" constructor="DataGridControl" version="1.0.1"
     display-name-key="DataGridControl" description-key="DataGridControl_Desc"
-    control-type="virtual">
-    <external-service-usage enabled="false"></external-service-usage>
+    control-type="standard">
 
     <!-- Header -->
     <property name="HeaderHeight" display-name-key="HeaderHeight"
