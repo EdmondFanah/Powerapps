@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="SampleNamespace" constructor="DataGridControl" version="1.0.3"
+  <control namespace="SampleNamespace" constructor="DataGridControl" version="1.0.4"
     display-name-key="DataGridControl" description-key="DataGridControl_Desc"
     control-type="standard">
 
@@ -52,7 +52,13 @@
 
     <!-- Data (JSON string): pass JSON(yourCollection) from Canvas -->
     <property name="DataJson" display-name-key="DataJson"
-      description-key="DataJson_Desc" of-type="Multiple" usage="input" required="false" />
+      description-key="DataJson_Desc" of-type="Multiple" usage="input" required="true" />
+
+    <!-- Outputs -->
+    <property name="SelectedRowId" display-name-key="SelectedRowId"
+      description-key="SelectedRowId_Desc" of-type="SingleLine.Text" usage="output" required="false" />
+    <property name="DirtyEditCount" display-name-key="DirtyEditCount"
+      description-key="DirtyEditCount_Desc" of-type="Whole.None" usage="output" required="false" />
 
     <resources>
       <code path="index.ts" order="1" />
