@@ -21,7 +21,7 @@ const zipFile      = path.join(root, 'DataGridPCFSolution.zip');
 const unpackedDir  = path.join(root, 'SolutionUnpacked');
 const otherDir     = path.join(unpackedDir, 'Other');
 const controlsDir  = path.join(unpackedDir, 'Controls', 'SampleNamespace.DataGridControl');
-const SOLUTION_VERSION = '1.0.2.0';
+const SOLUTION_VERSION = '1.0.3.0';
 
 // 1. Check build outputs exist
 ['bundle.js', 'ControlManifest.xml'].forEach(file => {
@@ -60,7 +60,7 @@ fs.writeFileSync(path.join(otherDir, 'Customizations.xml'), customizationsXml, '
 if (fs.existsSync(zipFile)) fs.unlinkSync(zipFile);
 console.log('Running pac solution pack...');
 execSync(
-  `pac solution pack --folder "${unpackedDir}" --zipfile "${zipFile}" --packagetype Unmanaged`,
+  `pac solution pack --folder "${unpackedDir}" --zipfile "${zipFile}" --packagetype Managed`,
   { stdio: 'inherit' }
 );
 
