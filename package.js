@@ -20,8 +20,8 @@ const outDir       = path.join(root, 'out', 'controls');
 const zipFile      = path.join(root, 'DataGridPCFSolution.zip');
 const unpackedDir  = path.join(root, 'SolutionUnpacked');
 const otherDir     = path.join(unpackedDir, 'Other');
-const controlsDir  = path.join(unpackedDir, 'Controls', 'DataGrid.DataGridControl');
-const SOLUTION_VERSION = '1.0.7.0';
+const controlsDir  = path.join(unpackedDir, 'Controls', 'dgpc_DataGrid.DataGridControl');
+const SOLUTION_VERSION = '1.0.8.0';
 
 // 1. Check build outputs exist
 ['bundle.js', 'ControlManifest.xml'].forEach(file => {
@@ -42,6 +42,11 @@ fs.mkdirSync(controlsDir, { recursive: true });
 // 4. Copy built files into SolutionUnpacked
 fs.copyFileSync(path.join(outDir, 'bundle.js'),          path.join(controlsDir, 'bundle.js'));
 fs.copyFileSync(path.join(outDir, 'ControlManifest.xml'), path.join(controlsDir, 'ControlManifest.xml'));
+
+// 4a. Patch namespace to dgpc_DataGrid (pcf-scripts rejects underscores in source, so we post-process)
+let manifestXml = fs.readFileSync(path.join(controlsDir, 'ControlManifest.xml'), 'utf8');
+manifestXml = manifestXml.replace('namespace="DataGrid"', 'namespace="dgpc_DataGrid"');
+fs.writeFileSync(path.join(controlsDir, 'ControlManifest.xml'), manifestXml, 'utf8');
 
 // 5. Write solution.xml (bump version)
 const solutionXml = fs.readFileSync(path.join(root, 'SolutionPackage', 'solution.xml'), 'utf8')
