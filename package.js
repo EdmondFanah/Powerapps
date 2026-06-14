@@ -20,8 +20,8 @@ const outDir       = path.join(root, 'out', 'controls');
 const zipFile      = path.join(root, 'DataGridPCFSolution.zip');
 const unpackedDir  = path.join(root, 'SolutionUnpacked');
 const otherDir     = path.join(unpackedDir, 'Other');
-const controlsDir  = path.join(unpackedDir, 'Controls', 'SampleNamespace.DataGridControl');
-const SOLUTION_VERSION = '1.0.4.0';
+const controlsDir  = path.join(unpackedDir, 'Controls', 'DataGrid.DataGridControl');
+const SOLUTION_VERSION = '1.0.5.0';
 
 // 1. Check build outputs exist
 ['bundle.js', 'ControlManifest.xml'].forEach(file => {

@@ -39,7 +39,7 @@ export class DataGridControl implements ComponentFramework.StandardControl<IInpu
     public getOutputs(): IOutputs {
         return {
             SelectedRowId: this._selectedRowId ?? undefined,
-            DirtyEditCount: this._dirtyEditCount,
+            DirtyEditCount: this._dirtyEditCount.toString(),
         };
     }
 

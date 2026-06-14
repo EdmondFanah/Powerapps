@@ -33,5 +33,5 @@ export interface IInputs {
 
 export interface IOutputs {
     SelectedRowId?: string;
-    DirtyEditCount?: number;
+    DirtyEditCount?: string;
 }
