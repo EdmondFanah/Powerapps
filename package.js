@@ -3,24 +3,25 @@
  *
  * Usage: node package.js  (or: npm run package)
  *
- * No external dependencies required — uses Node.js built-ins + PowerShell Compress-Archive.
+ * Requirements: pac CLI (already installed alongside pcf-scripts)
  *
  * Steps:
  *  1. Reads ControlManifest.xml and bundle.js from out/controls/
- *  2. Builds solution.xml and customizations.xml with the manifest fully embedded
- *  3. Writes files to a temp folder, then zips with PowerShell Compress-Archive
+ *  2. Copies them into SolutionUnpacked/Controls/SampleNamespace.DataGridControl/
+ *  3. Writes solution.xml and customizations.xml into SolutionUnpacked/Other/
+ *  4. Runs pac solution pack to produce DataGridPCFSolution.zip
  */
-const fs = require('fs');
+const fs   = require('fs');
 const path = require('path');
-const os = require('os');
 const { execSync } = require('child_process');
 
-const root = __dirname;
-const outDir = path.join(root, 'out', 'controls');
-const zipFile = path.join(root, 'DataGridPCFSolution.zip');
+const root         = __dirname;
+const outDir       = path.join(root, 'out', 'controls');
+const zipFile      = path.join(root, 'DataGridPCFSolution.zip');
+const unpackedDir  = path.join(root, 'SolutionUnpacked');
+const otherDir     = path.join(unpackedDir, 'Other');
+const controlsDir  = path.join(unpackedDir, 'Controls', 'SampleNamespace.DataGridControl');
 const SOLUTION_VERSION = '1.0.1.0';
-const CONTROL_VERSION = '1.0.1';
-const CONTROL_NAME = 'SampleNamespace.DataGridControl';
 
 // 1. Check build outputs exist
 ['bundle.js', 'ControlManifest.xml'].forEach(file => {
@@ -30,72 +31,40 @@ const CONTROL_NAME = 'SampleNamespace.DataGridControl';
   }
 });
 
-const manifestXml = fs.readFileSync(path.join(outDir, 'ControlManifest.xml'), 'utf8');
-const bundleJs    = fs.readFileSync(path.join(outDir, 'bundle.js'));
-// Strip the <?xml?> declaration so manifest embeds cleanly inside customizations.xml
-const manifestInner = manifestXml.replace(/<\?xml[^?]*\?>\s*/, '');
+// 2. Ensure folder structure
+fs.mkdirSync(otherDir,    { recursive: true });
+fs.mkdirSync(controlsDir, { recursive: true });
 
-// 2. Build solution.xml — use the existing SolutionPackage/solution.xml as base, bump version
+// 3. Copy built files into SolutionUnpacked
+fs.copyFileSync(path.join(outDir, 'bundle.js'),          path.join(controlsDir, 'bundle.js'));
+fs.copyFileSync(path.join(outDir, 'ControlManifest.xml'), path.join(controlsDir, 'ControlManifest.xml'));
+
+// 4. Write solution.xml (bump version)
 const solutionXml = fs.readFileSync(path.join(root, 'SolutionPackage', 'solution.xml'), 'utf8')
   .replace(/<Version>[^<]*<\/Version>/, `<Version>${SOLUTION_VERSION}</Version>`);
+fs.writeFileSync(path.join(otherDir, 'Solution.xml'), solutionXml, 'utf8');
 
-// 3. Build customizations.xml — manifest embedded inline, bundle.js referenced as a zip file entry
-const customizationsXml = `<?xml version="1.0" encoding="utf-8"?>
+// 5. Write customizations.xml (empty CustomControls — pac fills it from the Controls folder)
+const customizationsXml =
+`<?xml version="1.0" encoding="utf-8"?>
 <ImportExportXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <Entities />
-  <Roles />
-  <Workflows />
-  <FieldSecurityProfiles />
-  <Templates />
-  <EntityMaps />
-  <EntityRelationships />
-  <OrganizationSettings />
-  <optionsets />
-  <CustomControls>
-    <CustomControl Name="${CONTROL_NAME}" Version="${CONTROL_VERSION}">
-      <Manifest>${manifestInner.trim()}</Manifest>
-      <Resources>
-        <Resource Path="Controls/${CONTROL_NAME}/bundle.js" Order="1" Version="${CONTROL_VERSION}" />
-      </Resources>
-    </CustomControl>
-  </CustomControls>
-  <SolutionPluginAssemblies />
-  <EntityDataProviders />
-  <Languages>
-    <Language>1033</Language>
-  </Languages>
+  <Entities /><Roles /><Workflows /><FieldSecurityProfiles /><Templates />
+  <EntityMaps /><EntityRelationships /><OrganizationSettings /><optionsets />
+  <CustomControls />
+  <SolutionPluginAssemblies /><EntityDataProviders />
+  <Languages><Language>1033</Language></Languages>
 </ImportExportXml>`;
+fs.writeFileSync(path.join(otherDir, 'Customizations.xml'), customizationsXml, 'utf8');
 
-// 4. Write to temp dir and zip with PowerShell Compress-Archive (guaranteed-compatible zip)
-const contentTypesXml = `<?xml version="1.0" encoding="utf-8"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-  <Default Extension="xml" ContentType="application/octet-stream" />
-  <Default Extension="js"  ContentType="application/octet-stream" />
-</Types>`;
-
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dgp-solution-'));
-try {
-  // Controls folder with the actual bundle and manifest as separate zip entries
-  const controlsDir = path.join(tmpDir, 'Controls', CONTROL_NAME);
-  fs.mkdirSync(controlsDir, { recursive: true });
-  fs.writeFileSync(path.join(controlsDir, 'bundle.js'),          bundleJs);
-  fs.writeFileSync(path.join(controlsDir, 'ControlManifest.xml'), manifestXml, 'utf8');
-
-  fs.writeFileSync(path.join(tmpDir, '[Content_Types].xml'), contentTypesXml,   'utf8');
-  fs.writeFileSync(path.join(tmpDir, 'solution.xml'),        solutionXml,       'utf8');
-  fs.writeFileSync(path.join(tmpDir, 'customizations.xml'),  customizationsXml, 'utf8');
-
-  if (fs.existsSync(zipFile)) fs.unlinkSync(zipFile);
-
-  execSync(
-    `powershell -NoProfile -Command "Compress-Archive -Path '${tmpDir}\\*' -DestinationPath '${zipFile}' -Force"`,
-    { stdio: 'inherit' }
-  );
-} finally {
-  fs.rmSync(tmpDir, { recursive: true, force: true });
-}
+// 6. Run pac solution pack (produces correct zip format with forward-slash paths)
+if (fs.existsSync(zipFile)) fs.unlinkSync(zipFile);
+console.log('Running pac solution pack...');
+execSync(
+  `pac solution pack --folder "${unpackedDir}" --zipfile "${zipFile}" --packagetype Unmanaged`,
+  { stdio: 'inherit' }
+);
 
 const size = (fs.statSync(zipFile).size / 1024).toFixed(1);
 console.log(`Done! DataGridPCFSolution.zip written (${size} KB)`);
 console.log(`Import at https://make.powerapps.com → Solutions → Import solution`);
-
+

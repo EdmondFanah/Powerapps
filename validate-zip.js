@@ -67,7 +67,8 @@ function header(msg){ console.log(`\n[${msg}]`); }
 function parseXml(text, label) {
   // Minimal XML validity: check it can be parsed by checking tag balance
   // Use regex-based checks since we have no DOM in plain Node
-  if (!text.startsWith('<?xml')) { fail(`${label}: missing <?xml?> declaration`); return null; }
+  // Note: <?xml?> declaration is optional in XML 1.0 — pac omits it on some files
+  if (!text.trim().startsWith('<')) { fail(`${label}: does not appear to be XML`); return null; }
   if (text.includes('&') && !/&amp;|&lt;|&gt;|&quot;|&apos;/.test(text)) {
     fail(`${label}: unescaped & character found`); return null;
   }
@@ -162,22 +163,41 @@ if (entries['customizations.xml']) {
   const xml = parseXml(cust, 'customizations.xml');
   if (xml) {
     pass('Valid XML structure');
-    if (cust.includes('<CustomControls>')) pass('<CustomControls> section present');
+    if (cust.includes('<CustomControls>') || cust.includes('<CustomControls/>')) pass('<CustomControls> section present');
     else fail('<CustomControls> section missing');
-    if (cust.includes('<CustomControl ')) pass('<CustomControl> element present');
-    else fail('<CustomControl> element missing');
-    const ccName = attr(cust.match(/CustomControl [^>]*/)?.[0] || '', 'Name');
-    if (ccName) pass(`CustomControl Name: ${ccName}`);
-    else fail('CustomControl Name attribute missing');
-    const ccVer = attr(cust.match(/CustomControl [^>]*/)?.[0] || '', 'Version');
-    if (ccVer) pass(`CustomControl Version: ${ccVer}`);
-    else fail('CustomControl Version attribute missing');
-    if (cust.includes('<Manifest>')) pass('<Manifest> element present');
-    else fail('<Manifest> element missing — manifest not embedded');
-    if (cust.includes('<Resource ')) pass('<Resource> element present');
-    else fail('<Resource> element missing');
-    if (cust.includes('FileContent=')) fail('FileContent attribute found — bundle must be a zip file entry, not base64');
-    else pass('No inline FileContent (bundle is a zip file entry — correct)');
+
+    // pac file-reference format: <CustomControl><Name>...</Name><FileName>...</FileName></CustomControl>
+    const isPacFormat = cust.includes('<FileName>');
+    // embedded format: <CustomControl Name="..." Version="..."><Manifest>...</Manifest></CustomControl>
+    const isEmbedded = cust.includes('<CustomControl ');
+
+    if (isPacFormat) {
+      pass('pac file-reference format detected');
+      const nameMatch = cust.match(/<Name>([^<]+)<\/Name>/);
+      if (nameMatch) pass(`CustomControl Name: ${nameMatch[1].replace('.xml','')}`);
+      else fail('CustomControl <Name> element missing');
+      const fileMatch = cust.match(/<FileName>([^<]+)<\/FileName>/);
+      if (fileMatch) pass(`ControlManifest.xml referenced at: ${fileMatch[1]}`);
+      else fail('CustomControl <FileName> element missing');
+      if (cust.includes('FileContent=')) fail('FileContent attribute found — bundle must be a zip file entry, not base64');
+      else pass('No inline FileContent (correct)');
+    } else if (isEmbedded) {
+      pass('Embedded manifest format detected');
+      const ccName = attr(cust.match(/CustomControl [^>]*/)?.[0] || '', 'Name');
+      if (ccName) pass(`CustomControl Name: ${ccName}`);
+      else fail('CustomControl Name attribute missing');
+      const ccVer = attr(cust.match(/CustomControl [^>]*/)?.[0] || '', 'Version');
+      if (ccVer) pass(`CustomControl Version: ${ccVer}`);
+      else fail('CustomControl Version attribute missing');
+      if (cust.includes('<Manifest>')) pass('<Manifest> element present');
+      else fail('<Manifest> element missing');
+      if (cust.includes('<Resource ')) pass('<Resource> element present');
+      else fail('<Resource> element missing');
+      if (cust.includes('FileContent=')) fail('FileContent attribute found — bundle must be a zip file entry, not base64');
+      else pass('No inline FileContent (correct)');
+    } else {
+      fail('<CustomControl> element missing from customizations.xml');
+    }
   }
 }
 
@@ -203,7 +223,7 @@ if (manifestKey && entries[manifestKey]) {
   }
 }
 
-// 8. Cross-check: bundle path in customizations matches zip entry
+// 8. Cross-check: bundle path in customizations or FileName reference matches zip entry
 header('CROSS-CHECKS');
 if (entries['customizations.xml'] && bundleKey) {
   const cust = entries['customizations.xml'].toString('utf8');
@@ -212,6 +232,10 @@ if (entries['customizations.xml'] && bundleKey) {
     const normalized = resourcePath.replace(/\\/g, '/');
     if (normalized === bundleKey) pass(`Resource Path matches zip entry: ${normalized}`);
     else fail(`Resource Path "${normalized}" does not match zip entry "${bundleKey}"`);
+  } else if (cust.includes('<FileName>')) {
+    pass('pac file-reference format — ControlManifest.xml and bundle.js are direct zip entries');
+  } else {
+    fail('No Resource Path or FileName reference found in customizations.xml');
   }
 }
 
