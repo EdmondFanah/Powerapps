@@ -11,17 +11,17 @@
     <Version>1.0.0.0</Version>
     <Managed>0</Managed>
     <Publisher>
-      <UniqueName>DataGridPCFPub</UniqueName>
+      <UniqueName>DGPControlPub</UniqueName>
       <LocalizedNames>
-        <LocalizedName description="DataGrid PCF Publisher" languagecode="1033" />
+        <LocalizedName description="DGP Control Publisher" languagecode="1033" />
       </LocalizedNames>
       <Descriptions>
-        <Description description="DataGrid PCF Publisher" languagecode="1033" />
+        <Description description="DGP Control Publisher" languagecode="1033" />
       </Descriptions>
       <EMailAddress xsi:nil="true"></EMailAddress>
       <SupportingWebsiteUrl xsi:nil="true"></SupportingWebsiteUrl>
-      <CustomizationPrefix>dgp</CustomizationPrefix>
-      <CustomizationOptionValuePrefix>12193</CustomizationOptionValuePrefix>
+      <CustomizationPrefix>dgpc</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>12194</CustomizationOptionValuePrefix>
       <Addresses />
     </Publisher>
     <RootComponents>
@@ -30,3 +30,4 @@
     <MissingDependencies />
   </SolutionManifest>
 </ImportExportXml>
+
