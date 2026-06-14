@@ -1,10 +1,10 @@
 # DataGrid PCF Control
 
-A Power Apps Component Framework (PCF) control that renders a fully-featured data grid in **Canvas apps**. Built with React and TypeScript as a `virtual` control (no DOM management — the platform handles the React lifecycle).
+A Power Apps Component Framework (PCF) control that renders a fully-featured data grid in **Canvas apps**. Built with React and TypeScript as a `virtual` control.
 
 ## Features
 
-- **Data binding** — connects to any PCF DataSet (Dataverse table, collection, etc.)
+- **Data binding** — accepts any JSON array via `JSON(yourCollection)` — works with Dataverse, SharePoint, SQL, Collections, or static data
 - **Sorting** — click column headers to sort ascending/descending
 - **Filtering** — per-column filter support
 - **Search** — full-text search bar across all visible columns
@@ -17,10 +17,8 @@ A Power Apps Component Framework (PCF) control that renders a fully-featured dat
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) v18+ (tested on v24)
-- [Power Platform CLI (`pac`)](https://learn.microsoft.com/en-us/power-platform/developer/cli/introduction) v2.8+
-- .NET 8 SDK (required by `pac`)
-- A Power Apps environment where your user has **System Administrator** or **System Customizer** role (required to import PCF controls)
+- [Node.js](https://nodejs.org/) v18+
+- A Power Apps environment where **"Power Apps component framework for canvas apps"** is enabled in the Admin Center
 
 ## Local Development
 
@@ -29,9 +27,9 @@ npm install
 npm start
 ```
 
-Opens the PCF test harness at `http://localhost:8181`. Use the harness to feed mock data and interact with the control before deploying.
+Opens the PCF test harness at `http://localhost:8181`.
 
-> **Note:** `postinstall.js` automatically patches a known bug in `pcf-scripts@1.51.1` (`startTask.js`) after every `npm install`. No manual steps needed.
+> **Note:** `postinstall.js` automatically patches a known bug in `pcf-scripts@1.51.1` after every `npm install`.
 
 ## Build & Package
 
@@ -40,164 +38,99 @@ npm run package
 ```
 
 This will:
-1. Compile and bundle the control in **production mode** (minified, no `eval`)
-2. Pack a Dataverse solution zip via `pac solution pack`
+1. Compile and bundle the control in **production mode**
+2. Embed the manifest and bundle directly into `customizations.xml`
 3. Output `DataGridPCFSolution.zip` in the project root
+
+> **No `pac` CLI required** — the zip is built entirely with Node.js built-ins.
 
 ## Deploy to a New Environment
 
-Follow these steps to deploy to any Power Apps environment from scratch.
+### Step 1 — Enable the PCF feature flag (admin, one-time)
 
-### Step 1 — Set up the machine (first time only)
+1. Go to [Power Platform Admin Center](https://admin.powerplatform.microsoft.com)
+2. **Environments** → select your environment → **Settings** → **Product** → **Features**
+3. Enable **"Power Apps component framework for canvas apps"** → Save
 
-Install the required tools if not already present:
+### Step 2 — Import the solution
 
-```powershell
-# Node.js (v18+) — https://nodejs.org
-# .NET 8 SDK — https://dotnet.microsoft.com/download
-
-# Power Platform CLI
-winget install Microsoft.PowerPlatformCLI
-```
-
-After installing, refresh your PATH:
-```powershell
-$env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH","User")
-```
-
-Verify:
-```powershell
-pac --version   # should show 2.8+
-node --version  # should show v18+
-dotnet --version # should show 8.x
-```
-
-### Step 2 — Clone and install
-
-```bash
-git clone https://github.com/EdmondFanah/Powerapps.git
-cd Powerapps
-npm install
-```
-
-> `postinstall.js` runs automatically and patches a known `pcf-scripts` bug. No extra steps needed.
-
-### Step 3 — Build and package the solution
-
-```bash
-npm run package
-```
-
-This produces `DataGridPCFSolution.zip` in the project root — a ready-to-import Dataverse unmanaged solution.
-
-### Step 4 — Authenticate with Power Platform CLI
-
-```powershell
-pac auth create --environment https://<your-org>.crm.dynamics.com
-```
-
-Sign in with your credentials when the browser opens. Replace `<your-org>` with your environment URL (found in [Power Platform Admin Center](https://admin.powerplatform.microsoft.com) → Environments → your env → Settings → Environment URL).
-
-### Step 5 — Import the solution
-
-**Option A — via browser (recommended):**
 1. Go to [make.powerapps.com](https://make.powerapps.com)
 2. Select your environment (top-right corner)
 3. **Solutions → Import solution**
-4. Upload `DataGridPCFSolution.zip`
-5. Click **Next → Import**
+4. Upload `DataGridPCFSolution.zip` → **Next → Import**
+5. After import completes, click **Publish All Customizations**
+6. Wait ~30 seconds, then hard-refresh the browser (`Ctrl+Shift+R`)
 
-**Option B — via CLI:**
-```powershell
-pac solution import --path DataGridPCFSolution.zip
-```
+### Step 3 — Add to a Canvas app
 
-After import, the control appears in Canvas apps under **Insert → Custom → DataGridControl**.
-
-### Step 6 — Grant permissions (if import fails)
-
-If the import fails with `missing prvCreateCustomControl privilege`:
-
-1. Go to [Power Platform Admin Center](https://admin.powerplatform.microsoft.com)
-2. Select your environment → **Settings → Users + permissions → Security roles**
-3. Open the role assigned to your user
-4. Go to the **Customization** tab → find **Custom Control** → enable **Create**
-5. Save, then retry the import
-
-Alternatively, ask a System Administrator to either import the solution on your behalf or temporarily assign you the **System Customizer** role.
-
-### Step 7 — Add to a Canvas app
-
-1. Open or create a Canvas app at [make.powerapps.com](https://make.powerapps.com)
-2. **Insert → Get more components** (if the control is not yet listed)
-3. Search for `DataGridControl` → **Import**
-4. Insert it onto a screen: **Insert → Custom → DataGridControl**
-5. In the right panel, connect `sampleDataSet` to a data source (e.g. a Dataverse table)
-6. Configure properties as needed (see [Canvas App Configuration](#canvas-app-configuration) below)
+1. Open or create a Canvas app
+2. **Insert → Get more components → Code tab**
+3. Select **DataGridControl** → **Import**
+4. Insert it onto a screen: **Insert → Code components → DataGridControl**
+5. Set the `DataJson` property to your data source (see below)
 
 ## Canvas App Configuration
 
-After adding the control to a Canvas app screen, connect a data source and configure properties in the right panel:
-
 ### Data
-| Property | Type | Description |
-|---|---|---|
-| `sampleDataSet` | DataSet | The data source (table, collection, etc.) |
 
-### Columns
-| Property | Type | Description |
-|---|---|---|
-| `ColumnConfig` | Text (JSON) | Override column labels, widths, and alignment. Example: `[{"name":"cr123_name","label":"Full Name","width":200,"align":"left","visible":true}]` |
+Bind `DataJson` to any data source using the `JSON()` function:
 
-### Header
+```
+// From a Collection
+DataGridControl1.DataJson = JSON(MyCollection)
+
+// From SharePoint
+DataGridControl1.DataJson = JSON('My SharePoint List')
+
+// From a Dataverse table
+DataGridControl1.DataJson = JSON(Accounts)
+
+// Static test data
+DataGridControl1.DataJson = "[{""Name"":""Alice"",""Age"":""30""},{""Name"":""Bob"",""Age"":""25""}]"
+```
+
+### Properties
+
 | Property | Type | Description |
 |---|---|---|
-| `HeaderHeight` | Number | Header row height in pixels |
+| `DataJson` | Text | **Required.** JSON array of row objects — use `JSON(yourSource)` |
+| `ColumnConfig` | Text (JSON) | Override column labels, widths, alignment. Example: `[{"name":"Name","label":"Full Name","width":200,"align":"left"}]` |
+| `HeaderHeight` | Number | Header row height in pixels (default: 42) |
 | `WrapHeaderText` | Yes/No | Wrap long header labels |
-| `HeaderHorizontalAlign` | Text | `left`, `center`, or `right` |
-| `HeaderVerticalAlign` | Text | `top`, `middle`, or `bottom` |
-
-### Editing
-| Property | Type | Description |
-|---|---|---|
-| `EnableRowSelection` | Yes/No | Allow row selection (outputs `SelectedRowId`) |
+| `HeaderHorizontalAlign` | Text | `left`, `center`, or `right` (default: `left`) |
+| `HeaderVerticalAlign` | Text | `top`, `middle`, or `bottom` (default: `middle`) |
+| `EnableRowSelection` | Yes/No | Allow row selection — outputs `SelectedRowId` |
 | `EnableInlineEdit` | Yes/No | Allow editing cell values in-grid |
 | `ShowLocalSaveIndicator` | Yes/No | Show save/discard toolbar when edits are pending |
+| `ShowPagination` | Yes/No | Show pagination controls (default: true) |
+| `PageSize` | Number | Rows per page (default: 50) |
+| `ShowSearch` | Yes/No | Show the search bar (default: true) |
+| `PrimaryColor` | Text | Hex color for header and accents (default: `#0078d4`) |
+| `AlternateRowColor` | Yes/No | Stripe alternate rows (default: true) |
+| `ShowGridLines` | Yes/No | Show cell borders (default: true) |
+| `FontSize` | Number | Font size in pixels (default: 14) |
+| `RowHeight` | Number | Data row height in pixels (default: 36) |
+| `FrozenColumns` | Number | Number of columns to pin from the left (default: 0) |
 
-### Pagination
-| Property | Type | Description |
-|---|---|---|
-| `ShowPagination` | Yes/No | Show pagination controls |
-| `PageSize` | Number | Rows per page (default: 10) |
+### Outputs
 
-### Search
-| Property | Type | Description |
+| Output | Type | Description |
 |---|---|---|
-| `ShowSearch` | Yes/No | Show the search bar |
-
-### Appearance
-| Property | Type | Description |
-|---|---|---|
-| `PrimaryColor` | Text | Hex color for header and accents (e.g. `#0078d4`) |
-| `AlternateRowColor` | Yes/No | Stripe alternate rows |
-| `ShowGridLines` | Yes/No | Show cell borders |
-| `FontSize` | Number | Font size in pixels |
-| `RowHeight` | Number | Data row height in pixels |
-| `FrozenColumns` | Number | Number of columns to pin from the left |
+| `SelectedRowId` | Text | Index (as string) of the selected row, or empty |
+| `DirtyEditCount` | Number | Number of unsaved inline edits |
 
 ## Project Structure
 
 ```
 ├── index.ts                     # PCF entry point (ReactControl)
-├── App.tsx                      # Root React component — maps PCF inputs to grid props
+├── App.tsx                      # Root React component — parses DataJson, builds columns
 ├── ManifestTypes.ts             # IInputs / IOutputs type definitions
-├── ControlManifest.Input.xml    # PCF manifest (properties, data-set, control-type=virtual)
+├── ControlManifest.Input.xml    # PCF manifest (properties, control-type=virtual)
 ├── package.json                 # Scripts: start, build, package
-├── webpack.config.js            # Custom webpack (ts-loader with transpileOnly)
+├── package.js                   # Builds DataGridPCFSolution.zip (no pac required)
+├── webpack.config.js            # Custom webpack config
 ├── postinstall.js               # Auto-patches pcf-scripts startTask.js bug
 ├── featureconfig.json           # Enables custom webpack (pcfAllowCustomWebpack)
-├── DataGridControl.pcfproj      # MSBuild project for pac pcf push
-├── package.js                   # Node script: copies artifacts + runs pac solution pack
 ├── components/
 │   ├── DataGrid.tsx             # Main grid component
 │   ├── GridHeader.tsx           # Sortable, resizable column headers
@@ -212,12 +145,9 @@ After adding the control to a Canvas app screen, connect a data source and confi
 │   ├── usePagination.ts         # Pagination logic
 │   ├── useSelection.ts          # Row selection logic
 │   └── useColumnResize.ts       # Column resize drag logic
-├── models/
-│   ├── GridColumn.ts            # GridColumn type definition
-│   └── GridTheme.ts             # Theme helpers and default alignment by data type
-└── SolutionPackage/
-    ├── solution.xml             # Solution metadata (publisher, version)
-    └── customizations.xml       # Solution customizations template
+└── models/
+    ├── GridColumn.ts            # GridColumn type definition
+    └── GridTheme.ts             # Theme helpers
 ```
 
 ## Solution Details
@@ -226,9 +156,10 @@ After adding the control to a Canvas app screen, connect a data source and confi
 |---|---|
 | Namespace | `SampleNamespace` |
 | Constructor | `DataGridControl` |
-| Control version | `1.0.0` |
+| Control version | `1.0.1` |
 | Control type | `virtual` (Canvas app compatible) |
 | Solution name | `DataGridPCFSolution` |
+| Solution version | `1.0.1.0` |
 | Publisher | `DataGridPCFPub` (prefix: `dgp`) |
 | API version | `1.3.18` |
 
@@ -237,6 +168,7 @@ After adding the control to a Canvas app screen, connect a data source and confi
 | Package | Version | Notes |
 |---|---|---|
 | `pcf-scripts` | 1.51.1 | PCF build toolchain |
-| `react` | 17.0.2 | Intentionally v17 — Power Apps platform provides its own React |
+| `react` | 17.0.2 | v17 — Power Apps platform provides its own React |
 | `typescript` | 4.5.5 | Constrained by pcf-scripts |
-| `@types/powerapps-component-framework` | 1.3.18 | Latest PCF type definitions |
+| `@types/powerapps-component-framework` | 1.3.18 | PCF type definitions |
+
