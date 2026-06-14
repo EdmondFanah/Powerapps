@@ -21,7 +21,7 @@ const zipFile      = path.join(root, 'DataGridPCFSolution.zip');
 const unpackedDir  = path.join(root, 'SolutionUnpacked');
 const otherDir     = path.join(unpackedDir, 'Other');
 const controlsDir  = path.join(unpackedDir, 'Controls', 'SampleNamespace.DataGridControl');
-const SOLUTION_VERSION = '1.0.1.0';
+const SOLUTION_VERSION = '1.0.2.0';
 
 // 1. Check build outputs exist
 ['bundle.js', 'ControlManifest.xml'].forEach(file => {
@@ -67,4 +67,4 @@ execSync(
 const size = (fs.statSync(zipFile).size / 1024).toFixed(1);
 console.log(`Done! DataGridPCFSolution.zip written (${size} KB)`);
 console.log(`Import at https://make.powerapps.com → Solutions → Import solution`);
-
+
