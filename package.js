@@ -32,15 +32,14 @@ const CONTROL_NAME = 'SampleNamespace.DataGridControl';
 
 const manifestXml = fs.readFileSync(path.join(outDir, 'ControlManifest.xml'), 'utf8');
 const bundleJs    = fs.readFileSync(path.join(outDir, 'bundle.js'));
-const bundleBase64 = bundleJs.toString('base64');
-// Strip the <?xml?> declaration so it embeds cleanly inside customizations.xml
+// Strip the <?xml?> declaration so manifest embeds cleanly inside customizations.xml
 const manifestInner = manifestXml.replace(/<\?xml[^?]*\?>\s*/, '');
 
 // 2. Build solution.xml — use the existing SolutionPackage/solution.xml as base, bump version
 const solutionXml = fs.readFileSync(path.join(root, 'SolutionPackage', 'solution.xml'), 'utf8')
   .replace(/<Version>[^<]*<\/Version>/, `<Version>${SOLUTION_VERSION}</Version>`);
 
-// 3. Build customizations.xml with fully embedded manifest and bundle (base64)
+// 3. Build customizations.xml — manifest embedded inline, bundle.js referenced as a zip file entry
 const customizationsXml = `<?xml version="1.0" encoding="utf-8"?>
 <ImportExportXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Entities />
@@ -56,7 +55,7 @@ const customizationsXml = `<?xml version="1.0" encoding="utf-8"?>
     <CustomControl Name="${CONTROL_NAME}" Version="${CONTROL_VERSION}">
       <Manifest>${manifestInner.trim()}</Manifest>
       <Resources>
-        <Resource Path="Controls/${CONTROL_NAME}/bundle.js" Order="1" Version="${CONTROL_VERSION}" FileContent="${bundleBase64}" />
+        <Resource Path="Controls/${CONTROL_NAME}/bundle.js" Order="1" Version="${CONTROL_VERSION}" />
       </Resources>
     </CustomControl>
   </CustomControls>
@@ -76,6 +75,12 @@ const contentTypesXml = `<?xml version="1.0" encoding="utf-8"?>
 
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dgp-solution-'));
 try {
+  // Controls folder with the actual bundle and manifest as separate zip entries
+  const controlsDir = path.join(tmpDir, 'Controls', CONTROL_NAME);
+  fs.mkdirSync(controlsDir, { recursive: true });
+  fs.writeFileSync(path.join(controlsDir, 'bundle.js'),          bundleJs);
+  fs.writeFileSync(path.join(controlsDir, 'ControlManifest.xml'), manifestXml, 'utf8');
+
   fs.writeFileSync(path.join(tmpDir, '[Content_Types].xml'), contentTypesXml,   'utf8');
   fs.writeFileSync(path.join(tmpDir, 'solution.xml'),        solutionXml,       'utf8');
   fs.writeFileSync(path.join(tmpDir, 'customizations.xml'),  customizationsXml, 'utf8');
