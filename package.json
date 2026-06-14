@@ -7,7 +7,7 @@
     "clean": "pcf-scripts clean",
     "rebuild": "pcf-scripts rebuild",
     "start": "pcf-scripts start watch",
-    "package": "pcf-scripts build --buildMode production && node package.js",
+    "package": "pcf-scripts build --buildMode production && node package.js && node validate-zip.js",
     "postinstall": "node postinstall.js"
   },
   "dependencies": {
