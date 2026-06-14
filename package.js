@@ -68,10 +68,17 @@ const customizationsXml = `<?xml version="1.0" encoding="utf-8"?>
 </ImportExportXml>`;
 
 // 4. Write to temp dir and zip with PowerShell Compress-Archive (guaranteed-compatible zip)
+const contentTypesXml = `<?xml version="1.0" encoding="utf-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="xml" ContentType="application/octet-stream" />
+  <Default Extension="js"  ContentType="application/octet-stream" />
+</Types>`;
+
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dgp-solution-'));
 try {
-  fs.writeFileSync(path.join(tmpDir, 'solution.xml'),       solutionXml,       'utf8');
-  fs.writeFileSync(path.join(tmpDir, 'customizations.xml'), customizationsXml, 'utf8');
+  fs.writeFileSync(path.join(tmpDir, '[Content_Types].xml'), contentTypesXml,   'utf8');
+  fs.writeFileSync(path.join(tmpDir, 'solution.xml'),        solutionXml,       'utf8');
+  fs.writeFileSync(path.join(tmpDir, 'customizations.xml'),  customizationsXml, 'utf8');
 
   if (fs.existsSync(zipFile)) fs.unlinkSync(zipFile);
 
