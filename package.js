@@ -14,6 +14,7 @@
 const fs   = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const AdmZip = require('adm-zip');
 
 const root         = __dirname;
 const outDir       = path.join(root, 'out', 'controls');
@@ -72,6 +73,21 @@ execSync(
   `pac solution pack --folder "${unpackedDir}" --zipfile "${zipFile}" --packagetype Managed`,
   { stdio: 'inherit' }
 );
+
+// 7. Post-process: pac appends '.xml' to the control Name in customizations.xml — strip it
+//    e.g. 'dgpc_DataGrid.DataGridControl.xml' → 'dgpc_DataGrid.DataGridControl'
+const admZip = new AdmZip(zipFile);
+const custEntry = admZip.getEntry('customizations.xml');
+if (custEntry) {
+  let custXml = custEntry.getData().toString('utf8');
+  custXml = custXml.replace(
+    /<Name>(dgpc_DataGrid\.DataGridControl)\.xml<\/Name>/g,
+    '<Name>$1</Name>'
+  );
+  admZip.updateFile('customizations.xml', Buffer.from(custXml, 'utf8'));
+  admZip.writeZip(zipFile);
+  console.log('Patched customizations.xml: removed .xml suffix from control Name');
+}
 
 const size = (fs.statSync(zipFile).size / 1024).toFixed(1);
 console.log(`Done! DataGridPCFSolution.zip written (${size} KB)`);

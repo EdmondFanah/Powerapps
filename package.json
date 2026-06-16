@@ -19,6 +19,7 @@
     "@types/powerapps-component-framework": "^1.3.18",
     "@types/react": "^16.9.0",
     "@types/react-dom": "^16.9.0",
+    "adm-zip": "^0.5.17",
     "pcf-scripts": "^1",
     "pcf-start": "^1",
     "typescript": "~4.5.0"
