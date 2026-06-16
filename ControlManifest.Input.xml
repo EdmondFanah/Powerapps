@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="DataGrid" constructor="DataGridControl" version="1.0.8"
+  <control namespace="DataGrid" constructor="DataGridControl" version="1.0.10"
     display-name-key="DataGridControl" description-key="DataGridControl_Desc"
     control-type="standard">
+
+    <feature-usage>
+      <uses-feature name="CanvasApp" required="true" />
+    </feature-usage>
 
     <!-- Header -->
     <property name="HeaderHeight" display-name-key="HeaderHeight"
@@ -52,7 +56,7 @@
 
     <!-- Data (JSON string): pass JSON(yourCollection) from Canvas -->
     <property name="DataJson" display-name-key="DataJson"
-      description-key="DataJson_Desc" of-type="Multiple" usage="input" required="true" />
+      description-key="DataJson_Desc" of-type="SingleLine.Text" usage="input" required="true" />
 
     <!-- Outputs -->
     <property name="SelectedRowId" display-name-key="SelectedRowId"
