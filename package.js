@@ -14,15 +14,15 @@
 const fs   = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-const AdmZip = require('adm-zip');
+
 
 const root         = __dirname;
 const outDir       = path.join(root, 'out', 'controls');
 const zipFile      = path.join(root, 'DataGridPCFSolution.zip');
 const unpackedDir  = path.join(root, 'SolutionUnpacked');
 const otherDir     = path.join(unpackedDir, 'Other');
-const controlsDir  = path.join(unpackedDir, 'Controls', 'dgpc_DataGrid.DataGridControl');
-const SOLUTION_VERSION = '1.0.10.0';
+const controlsDir  = path.join(unpackedDir, 'Controls', 'dgpc.DataGridControl');
+const SOLUTION_VERSION = '1.0.11.0';
 
 // 1. Check build outputs exist
 ['bundle.js', 'ControlManifest.xml'].forEach(file => {
@@ -43,11 +43,6 @@ fs.mkdirSync(controlsDir, { recursive: true });
 // 4. Copy built files into SolutionUnpacked
 fs.copyFileSync(path.join(outDir, 'bundle.js'),          path.join(controlsDir, 'bundle.js'));
 fs.copyFileSync(path.join(outDir, 'ControlManifest.xml'), path.join(controlsDir, 'ControlManifest.xml'));
-
-// 4a. Patch namespace to dgpc_DataGrid (pcf-scripts rejects underscores in source, so we post-process)
-let manifestXml = fs.readFileSync(path.join(controlsDir, 'ControlManifest.xml'), 'utf8');
-manifestXml = manifestXml.replace('namespace="DataGrid"', 'namespace="dgpc_DataGrid"');
-fs.writeFileSync(path.join(controlsDir, 'ControlManifest.xml'), manifestXml, 'utf8');
 
 // 5. Write solution.xml (bump version)
 const solutionXml = fs.readFileSync(path.join(root, 'SolutionPackage', 'solution.xml'), 'utf8')
@@ -74,20 +69,6 @@ execSync(
   { stdio: 'inherit' }
 );
 
-// 7. Post-process: pac appends '.xml' to the control Name in customizations.xml — strip it
-//    e.g. 'dgpc_DataGrid.DataGridControl.xml' → 'dgpc_DataGrid.DataGridControl'
-const admZip = new AdmZip(zipFile);
-const custEntry = admZip.getEntry('customizations.xml');
-if (custEntry) {
-  let custXml = custEntry.getData().toString('utf8');
-  custXml = custXml.replace(
-    /<Name>(dgpc_DataGrid\.DataGridControl)\.xml<\/Name>/g,
-    '<Name>$1</Name>'
-  );
-  admZip.updateFile('customizations.xml', Buffer.from(custXml, 'utf8'));
-  admZip.writeZip(zipFile);
-  console.log('Patched customizations.xml: removed .xml suffix from control Name');
-}
 
 const size = (fs.statSync(zipFile).size / 1024).toFixed(1);
 console.log(`Done! DataGridPCFSolution.zip written (${size} KB)`);

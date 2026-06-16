@@ -25,7 +25,7 @@
       <Addresses />
     </Publisher>
     <RootComponents>
-      <RootComponent type="66" schemaName="dgpc_DataGrid.DataGridControl" behavior="0" />
+      <RootComponent type="66" schemaName="dgpc.DataGridControl" behavior="0" />
     </RootComponents>
     <MissingDependencies />
   </SolutionManifest>
